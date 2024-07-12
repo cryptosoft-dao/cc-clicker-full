@@ -3,13 +3,53 @@ from flask_cors import CORS
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-from models import Base, Ref, User, Task, init_engine
+from sqlalchemy import Boolean, Column, Integer, String, create_engine, JSON
+from sqlalchemy.orm import DeclarativeBase
 
 from hashlib import sha256
 
 app = Flask(__name__)
 cors = CORS(app)
-engine = init_engine('sqlite:///server.db')
+engine = create_engine('sqlite:///server.db')
+
+class Base(DeclarativeBase):
+    pass
+class User(Base):
+    __tablename__ = 'users'
+    
+    id = Column(Integer, primary_key=True)
+    tg_id = Column(Integer)
+    coins = Column(Integer, default=0)
+    energy = Column(Integer, default=500)
+    max_energy = Column(Integer, default=500)
+    coins_per_click = Column(Integer, default= 1)
+    country = Column(String(255))
+    jwt = Column(String(255))
+    has_print_bot = Column(Boolean,default=False)
+    multi_print_lvl = Column(Integer, default=1)
+    recharging_speed_lvl = Column(Integer, default=1)
+    energy_limit_lvl = Column(Integer, default=1)
+    printed_notes = Column(Integer, default=0)
+class Ref(Base):
+    __tablename__ = 'ref'
+    
+    id = Column(Integer, primary_key=True)
+    creator_user = Column(Integer)
+    come_user = Column(Integer)
+class Task(Base):
+    __tablename__ = 'tasks'
+    
+    id = Column(Integer, primary_key=True)
+    type = Column(Integer, default=0)
+    data = Column(JSON)
+    
+    #   {'title': 'Join our socials', 'icon': TiSocialYoutube, 'money': '60 000 000', 'complited': false 'tasks': [
+    #            { 'title': 'Join the Telegram chat', 'status': 'Go', 'finished': false, 'url': 'https://youtube.com' },
+    #            { 'title': 'Join the Telegram chat', 'status': 'Go', 'finished': false, 'url': 'https://youtube.com' },
+    #            { 'title': 'Join the Telegram chat', 'status': 'Go', 'finished': false, 'url': 'https://youtube.com' },
+    #        ],
+    #    }
+    
 
 countries = [
   'China',
@@ -300,7 +340,6 @@ def total_of_stats():
     
     return jsonify({'status':200, "total_users":total_users,"total_printed_notes":total_printed_notes,"ranks":ranks,"total_rank_money":total_rank_money})
 if __name__ == '__main__':
-    #Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
-    app.run(debug=True)
-    
+    # Threaded option to enable multiple instances for multiple user access support
+    app.run(threaded=True, port=5000)
