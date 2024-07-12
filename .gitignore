@@ -10,8 +10,6 @@ public_github/
 # testing
 /coverage
 
-# production
-/build
 
 # misc
 .DS_Store
